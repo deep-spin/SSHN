@@ -34,7 +34,6 @@ This code was tested on `Python 3.10.10`. To install, follow these steps:
 Run the script `MNIST_bags.py` with the desired parameters (nomenclature can be found in the beginning of the script)
 
 #### Benchmarks MIL
-##### Dataset preparation
 
 Download and upzip the dataset
 
