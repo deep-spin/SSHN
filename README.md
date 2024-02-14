@@ -39,7 +39,6 @@ Download and upzip the dataset
 
 ```bash
 $ wget http://www.cs.columbia.edu/~andrews/mil/data/MIL-Data-2002-Musk-Corel-Trec9-MATLAB.tgz 
-$ wget http://www.cs.columbia.edu/~andrews/mil/data/MIL-Data-2002-Musk-Corel-Trec9-MATLAB.tgz
 ```
 
 Run the script `MIL_Data_2002.py` with the desired parameters (nomenclature can be found in the beginning of the script)
