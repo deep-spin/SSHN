@@ -27,7 +27,7 @@ This code was tested on `Python 3.10.10`. To install, follow these steps:
 2. Clone the [Eigen](https://gitlab.com/libeigen/eigen.git) repository to the main folder: `git clone git@gitlab.com:libeigen/eigen.git`
 3. Clone the [LP-SparseMAP](https://github.com/nunonmg/lp-sparsemap) fork repository to main folder, and follow the installation instructions found there
 4. Install the requirements: `pip install -r requirements.txt`
-5. Run the corresponding scripts.
+5. Run the corresponding scripts
 
 ### Reproducibility
 #### MNIST MIL
@@ -40,7 +40,7 @@ Run the script `MIL_Data_2002.py` with the desired parameters (nomenclature can 
 Run the scripts `countours.py` and `basins.py` 
 
 #### Metastable State Counting
-Run the script `MNIST_metastable.py`.
+Run the script `MNIST_metastable.py`
 
 ### Dataset preparation
 
