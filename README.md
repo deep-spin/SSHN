@@ -27,7 +27,7 @@ This code was tested on `Python 3.10.10`. To install, follow these steps:
 2. Clone the [Eigen](https://gitlab.com/libeigen/eigen.git) repository to the main folder: `git clone git@gitlab.com:libeigen/eigen.git`
 3. Clone the [LP-SparseMAP](https://github.com/nunonmg/lp-sparsemap) fork repository to main folder, and follow the installation instructions found there
 4. Install the requirements: `pip install -r requirements.txt`
-5. Install the `spectra-rationalization` package: `pip install .` (or in editable mode if you want to make changes: `pip install -e .`)
+5. Run the desirable scripts.
 
 ---
 
