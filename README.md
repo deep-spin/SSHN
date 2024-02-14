@@ -30,16 +30,16 @@ This code was tested on `Python 3.10.10`. To install, follow these steps:
 5. Run the corresponding scripts.
 
 ### Reproducibility
-## MNIST MIL
+#### MNIST MIL
 Run the script `MNIST_bags.py` with the desired parameters (nomenclature can be found in the beginning of the script)
 
-## Benchmarks MIL
+#### Benchmarks MIL
 Run the script `MIL_Data_2002.py` with the desired parameters (nomenclature can be found in the beginning of the script)
 
-## Countours and Basins of Attraction
+#### Countours and Basins of Attraction
 Run the scripts `countours.py` and `basins.py` 
 
-## Metastable State Counting
+#### Metastable State Counting
 Run the script `MNIST_metastable.py`.
 
 ### Dataset preparation
