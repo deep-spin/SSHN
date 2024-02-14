@@ -18,7 +18,7 @@ Official implementation of paper **Sparse and Structured Hopfield Networks**.
 All material is made available under the MIT license. You can **use, redistribute, and adapt** the material for **non-commercial purposes**, as long as you give appropriate credit by **citing our paper** and **indicating any changes** that you've made.
 
 
-##Synthetic, MNIST and Multiple Instance Learning Experiments
+## Synthetic, MNIST and Multiple Instance Learning Experiments
 ### Python requirements and installation
 
 This code was tested on `Python 3.10.10`. To install, follow these steps:
@@ -30,3 +30,5 @@ This code was tested on `Python 3.10.10`. To install, follow these steps:
 5. Install the `spectra-rationalization` package: `pip install .` (or in editable mode if you want to make changes: `pip install -e .`)
 
 ---
+
+## Spectra Experiments
