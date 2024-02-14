@@ -34,6 +34,15 @@ This code was tested on `Python 3.10.10`. To install, follow these steps:
 Run the script `MNIST_bags.py` with the desired parameters (nomenclature can be found in the beginning of the script)
 
 #### Benchmarks MIL
+##### Dataset preparation
+
+Download and upzip the dataset
+
+```bash
+$ wget http://www.cs.columbia.edu/~andrews/mil/data/MIL-Data-2002-Musk-Corel-Trec9-MATLAB.tgz 
+$ wget http://www.cs.columbia.edu/~andrews/mil/data/MIL-Data-2002-Musk-Corel-Trec9-MATLAB.tgz
+```
+
 Run the script `MIL_Data_2002.py` with the desired parameters (nomenclature can be found in the beginning of the script)
 
 #### Countours and Basins of Attraction
@@ -42,14 +51,6 @@ Run the scripts `countours.py` and `basins.py`
 #### Metastable State Counting
 Run the script `MNIST_metastable.py`
 
-### Dataset preparation
-
-Download and upzip the dataset
-
-```bash
-$ wget http://www.cs.columbia.edu/~andrews/mil/data/MIL-Data-2002-Musk-Corel-Trec9-MATLAB.tgz 
-$ wget http://www.cs.columbia.edu/~andrews/mil/data/MIL-Data-2002-Musk-Corel-Trec9-MATLAB.tgz
-```
 ## Spectra Experiments
 ### Python requirements and installation
 Follow the instructions of the branch in [hopfield-spectra](https://github.com/deep-spin/spectra-rationalization/tree/hopfield-spectra)
