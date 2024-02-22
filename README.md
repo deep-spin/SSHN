@@ -13,7 +13,7 @@ Official implementation of paper **Sparse and Structured Hopfield Networks**.
 
 ## Resources
 
-- [Paper](to add) (arXiv)
+- [Paper](http://arxiv.org/abs/2402.13725) (arXiv)
 
 All material is made available under the MIT license. You can **use, redistribute, and adapt** the material for **non-commercial purposes**, as long as you give appropriate credit by **citing our paper** and **indicating any changes** that you've made.
 
