@@ -4,12 +4,9 @@ import torch.nn as nn
 from torch import Tensor
 from typing import Optional, Tuple, Union
 import warnings
-from entmax import sparsemax, entmax15, entmax_bisectn, normmax_bisect
-from lpsmap import TorchFactorGraph, Budget
+from entmax import sparsemax, entmax15, entmax_bisect, normmax_bisect, budget_bisect
+import numpy as np
 from torch.autograd import Function
-
-def normmax(Z, alpha, dim=-1):
-    return normmax_bisect(Z, alpha=alpha, dim=dim)
 
 def entmax(Z, alpha, dim=-1):
     alpha = alpha.unsqueeze(1).unsqueeze(1) 
@@ -27,18 +24,10 @@ def entmax(Z, alpha, dim=-1):
                         entmax_bisect(Z, alpha, dim=dim))))
         return result
 
-def SparseMAP_exactly_k(scores, k=2):
-    marginals = torch.zeros_like(scores)
-    for head in range(scores.shape[0]):
-        for j in range(scores.shape[1]):
-            fg = TorchFactorGraph()
-            u = fg.variable_from(scores[head,j, :])
-            fg.add(Budget(u, k, force_budget=True))
-            fg.solve(verbose=0)
-            marginals[head, j, :] = u.value[:]
-    return marginals
 
-def hopfield_core_forward(query,                           # type: Tensor
+
+def hopfield_core_forward(
+                          query,                           # type: Tensor
                           key,                             # type: Tensor
                           value,                           # type: Tensor
                           alpha,
@@ -59,6 +48,7 @@ def hopfield_core_forward(query,                           # type: Tensor
                           key_padding_mask=None,           # type: Optional[Tensor]
                           need_weights=True,               # type: bool
                           attn_mask=None,                  # type: Optional[Tensor]
+                          query_ln=None,
                           use_separate_proj_weight=False,  # type: bool
                           q_proj_weight=None,              # type: Optional[Tensor]
                           k_proj_weight=None,              # type: Optional[Tensor]
@@ -216,13 +206,10 @@ def hopfield_core_forward(query,                           # type: Tensor
     update_step, xi_old, xi_difference_norm = 0, None, float(r'+inf')
     update_active_heads = torch.tensor([[[True]]] * num_heads * bsz, device=query.device)
     assert update_active_heads.any(), "at least one head needs to be active."
-
     ####################################################################################################################
-    #                                         BEGIN HOPFIELD UPDATE ITERATION                                          #
+    #                                         BEGIN HOFIELD UPDATE ITERATION                                          #
     ####################################################################################################################
-
     while update_active_heads.any():
-
         # The query is already projected into the "Hopfield" space at "update_step" equals 0.
         # No more projection necessary if "update_step" greater than 0.
         if update_step == 0:
@@ -232,7 +219,6 @@ def hopfield_core_forward(query,                           # type: Tensor
                         key_as_static or query_as_static or value_as_static):
                     # self-attention
                     q, k, v = nn.functional.linear(query, in_proj_weight, in_proj_bias).chunk(3, dim=-1)
-
                 elif torch.equal(key, value) and not (key_as_static or value_as_static):
                     # encoder-decoder attention
                     _start, _end = 0, hopfield_dim
@@ -260,8 +246,7 @@ def hopfield_core_forward(query,                           # type: Tensor
                         if _b is not None:
                             _b = _b[_start:_end]
                         k, v = nn.functional.linear(key, _w, _b).chunk(2, dim=-1)
-                        if normalize_pattern:
-                            k = k/torch.norm(k, dim=1, keepdim=True)
+
                 else:
                     _start, _end = 0, hopfield_dim
                     if query_as_static:
@@ -285,8 +270,6 @@ def hopfield_core_forward(query,                           # type: Tensor
                         if _b is not None:
                             _b = _b[_start:_end]
                         k = nn.functional.linear(key, _w, _b)
-                        if normalize_pattern:
-                            k = k/torch.norm(k, dim=1, keepdim=True)
                         _start += hopfield_dim
                         _end += hopfield_dim
 
@@ -299,7 +282,7 @@ def hopfield_core_forward(query,                           # type: Tensor
                         if _b is not None:
                             _b = _b[_start:_end]
                         v = nn.functional.linear(value, _w, _b)
-            else:
+            else:     
                 _start, _end = 0, hopfield_dim
                 if query_as_static:
                     q = query.repeat(1, num_heads, 1)
@@ -324,10 +307,10 @@ def hopfield_core_forward(query,                           # type: Tensor
 
                     _bias = None if in_proj_bias is None else in_proj_bias[_start:_end]
                     k = nn.functional.linear(key, k_proj_weight_non_opt, _bias)
-                    if normalize_pattern:
-                            k = k/torch.norm(k, dim=1, keepdim=True)
+                    # encoder-decoder attention
                     if value_as_connected:
                         v = nn.functional.linear(v, k_proj_weight_non_opt, _bias)
+
                     _start += hopfield_dim
                     _end += num_heads * pattern_dim
 
@@ -342,7 +325,6 @@ def hopfield_core_forward(query,                           # type: Tensor
                         v = nn.functional.linear(v, v_proj_weight_non_opt, in_proj_bias[_start:])
                     else:
                         v = nn.functional.linear(v, v_proj_weight_non_opt, in_proj_bias)
-
             if attn_mask is not None:
                 assert attn_mask.dtype == torch.float32 or attn_mask.dtype == torch.float64 or \
                        attn_mask.dtype == torch.float16 or attn_mask.dtype == torch.uint8 or \
@@ -366,6 +348,7 @@ def hopfield_core_forward(query,                           # type: Tensor
 
 
         else:
+
             active_xi = xi.masked_select(mask=update_active_heads).view(size=(-1, *xi.shape[1:]))
             active_k = k.masked_select(mask=update_active_heads).view(size=(-1, *k.shape[1:]))
             q = torch.masked_scatter(input=q, mask=update_active_heads, source=torch.bmm(active_xi, active_k))
@@ -399,7 +382,7 @@ def hopfield_core_forward(query,                           # type: Tensor
             else:
                 assert bias_k is None
                 assert bias_v is None
-
+        
             q = q.contiguous().view(tgt_len, -1, head_dim).transpose(0, 1)
             if k is not None:
                 k = k.contiguous().view(-1, bsz * num_heads, head_dim).transpose(0, 1)
@@ -447,22 +430,22 @@ def hopfield_core_forward(query,                           # type: Tensor
                 float('-inf'),
             )
             attn_output_weights = attn_output_weights.view(bsz * num_heads, tgt_len, src_len)
-        
         # Compute new xi for Hopfield retrieve iterations.
         if xi is None:
             if sparsemap:
-                xi = SparseMAP_exactly_k(attn_output_weights, k_ones)
+                xi = budget_bisect(attn_output_weights.squeeze(1), budget = k_ones, dim=-1)
+                xi = xi.unsqueeze(1)
             elif normmax:
-                xi = normmax_bisect(attn_output_weights, alpha=alpha, dim=-1)
+                xi = normmax_bisect(attn_output_weights, alpha=alpha, dim = -1)
             else:
                 xi = entmax(attn_output_weights, alpha, dim=-1)
         else:
             if sparsemap:
-                xi = torch.masked_scatter(input=xi, mask=update_active_heads, source=SparseMAP_exactly_k(
-                attn_output_weights.masked_select(mask=update_active_heads).view(size=(-1, *xi.shape[1:])), k_ones))
+                xi = torch.masked_scatter(input=xi, mask=update_active_heads, source=budget_bisect(
+                attn_output_weights.masked_select(mask=update_active_heads).view(size=(-1, *xi.shape[1:])), k_ones, -1))
             elif normmax:
                 xi = torch.masked_scatter(input=xi, mask=update_active_heads, source=normmax_bisect(
-                attn_output_weights.masked_select(mask=update_active_heads).view(size=(-1, *xi.shape[1:])), alpha=alpha, dim =-1))
+                attn_output_weights.masked_select(mask=update_active_heads).view(size=(-1, *xi.shape[1:])), alpha=alpha, dim = -1))
             else:
                 xi = torch.masked_scatter(input=xi, mask=update_active_heads, source=entmax (
                     attn_output_weights.masked_select(mask=update_active_heads).view(size=(-1, *xi.shape[1:])), alpha, dim=-1))
@@ -476,15 +459,15 @@ def hopfield_core_forward(query,                           # type: Tensor
             update_active_heads = update_active_heads.unsqueeze(dim=1).unsqueeze(dim=2).repeat(repeats=(bsz, 1, 1))
             xi_old = xi_active
         update_step += 1
-
     ####################################################################################################################
     #                                          END HOPFIELD UPDATE ITERATION                                           #
     ####################################################################################################################
 
     attn_output_weights = nn.functional.dropout(xi, p=dropout_p, training=training)
     attn_output = torch.bmm(attn_output_weights, v)
-    if normalize_pattern:
-        attn_output = attn_output/torch.norm(attn_output, dim=1, keepdim=True)
+
+    else:
+        raise NotImplementedError
     assert list(attn_output.shape[:2]) == [bsz * num_heads, tgt_len]
     attn_output = attn_output.transpose(0, 1).contiguous().view(tgt_len, bsz, -1)
     if out_proj_weight is not None:
