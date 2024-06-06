@@ -31,10 +31,7 @@ def get_args():
     device = "cuda:7"
     num_processes = 8
     parser = argparse.ArgumentParser(description='Examples of MIL benchmarks:')
-    parser.add_argument('--dataset', default="tiger_k=5", type=str, choices=['fox', 'tiger', 'elephant','ucsb',\
-                                                                       "tiger_k=2", "fox_k=2", "elephant_k=2",\
-                                                                          "tiger_k=3", "fox_k=3", "elephant_k=3", \
-                                                                            "tiger_k=5", "fox_k=5", "elephant_k=5"])
+    parser.add_argument('--dataset', default="tiger", type=str, choices=['fox', 'tiger', 'elephant'])
     parser.add_argument('--mode', default='normmax', type=str, choices=['softmax', 'sparsemax', "entmax", "sparsemap", "normmax"])
     parser.add_argument('--k', help='k exact ones for sparsemap', default=5, type=int)
     parser.add_argument('--alpha', help='alpha for normmax', default=10, type=float)
