@@ -1,4 +1,4 @@
-# SSHN: Sparse and Structured Hopfield Networks
+# [ICML 2024] Sparse and Structured Hopfield Networks
 Official implementation of paper **Sparse and Structured Hopfield Networks**.
 
 *Saul Santos*, *Vlad Niculae*, *Daniel McNamee* and *André Martins*
