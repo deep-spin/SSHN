@@ -1,4 +1,4 @@
-# [ICML 2024] Sparse and Structured Hopfield Networks
+# [ICML 2024 Spotlight] Sparse and Structured Hopfield Networks
 Official implementation of the paper **Sparse and Structured Hopfield Networks** accepted at International Conference on Machine Learning, 2024.
 
 *Saul Santos*, *Vlad Niculae*, *Daniel McNamee* and *André Martins*
